@@ -42,54 +42,61 @@ function handleClick(e) {
     const flipped = getFlippableDiscs(x, y, currentPlayer);
     if (flipped.length === 0) return;
 
+    // 石を置く
     boardState[y][x] = currentPlayer;
     flipped.forEach(([fx, fy]) => {
         boardState[fy][fx] = currentPlayer;
     });
 
-    // パスカウントをリセット（手を打てたので）
+    // パスカウントリセット
     passCount = 0;
+
+    // **盤面が full かどうかを、ターン交代前、updateBoard() より前にチェックする**
+    if (isBoardFull()) {
+        // この時点で boardState は完全に更新されている
+        updateBoard(currentPlayer); // 最終盤面を見せる
+        setTimeout(endGame, 100);
+        return;
+    }
 
     // ターン交代
     currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
 
-    // 次のプレイヤーに合法手があるか？
+    // 次のプレイヤーの合法手チェック
     if (hasLegalMove(currentPlayer)) {
         turnInfo.textContent = `Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+        updateBoard(currentPlayer);
     } else {
         passCount++;
-        if (passCount >= 2 || isBoardFull()) {
-            // 終局
-            endGame();
+        updateBoard(currentPlayer); // パス時の合法手表示（無し）も更新
+        if (passCount >= 2) {
+            setTimeout(endGame, 100);
             return;
         } else {
-            alert(`${currentPlayer} パスします`);
-            // パス → ターン戻す
-            currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
-            turnInfo.textContent = `Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+            setTimeout(() => {
+                alert(`${currentPlayer} パスします`);
+                currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+                turnInfo.textContent = `Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+                updateBoard(currentPlayer);
+            }, 100);
         }
     }
-
-    updateBoard();
 }
 
-
-function updateBoard() {
+function updateBoard(player) {
     const cells = board.children;
     for (let y = 0; y < SIZE; y++) {
         for (let x = 0; x < SIZE; x++) {
             const cell = cells[y * SIZE + x];
             cell.innerHTML = '';
 
-            // 石の描画
             if (boardState[y][x]) {
                 const disc = document.createElement('div');
                 disc.className = `disc ${boardState[y][x]}`;
                 cell.appendChild(disc);
                 cell.classList.remove('legal');
             } else {
-                // 空きマス
-                const flipped = getFlippableDiscs(x, y, currentPlayer);
+                const flipped = getFlippableDiscs(x, y, player);
                 if (flipped.length > 0) {
                     cell.classList.add('legal');
                 } else {
@@ -99,6 +106,7 @@ function updateBoard() {
         }
     }
 }
+
 
 
 function getFlippableDiscs(x, y, player) {

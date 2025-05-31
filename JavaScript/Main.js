@@ -57,14 +57,26 @@ function updateBoard() {
         for (let x = 0; x < SIZE; x++) {
             const cell = cells[y * SIZE + x];
             cell.innerHTML = '';
+
+            // 石の描画
             if (boardState[y][x]) {
                 const disc = document.createElement('div');
                 disc.className = `disc ${boardState[y][x]}`;
                 cell.appendChild(disc);
+                cell.classList.remove('legal');
+            } else {
+                // 空きマス
+                const flipped = getFlippableDiscs(x, y, currentPlayer);
+                if (flipped.length > 0) {
+                    cell.classList.add('legal');
+                } else {
+                    cell.classList.remove('legal');
+                }
             }
         }
     }
 }
+
 
 function getFlippableDiscs(x, y, player) {
     const opponent = player === 'black' ? 'white' : 'black';

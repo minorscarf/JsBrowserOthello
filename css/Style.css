@@ -38,3 +38,9 @@ body {
 .white {
     background-color: white;
 }
+
+.legal {
+    background-color: #4CAF50; /* 明るい緑 */
+    opacity: 0.7;
+    cursor: pointer;
+}

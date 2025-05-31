@@ -3,6 +3,7 @@ const turnInfo = document.getElementById('turn-info');
 const SIZE = 8;
 
 let currentPlayer = 'black';
+let passCount = 0;
 
 // 盤面の状態（null, 'black', 'white'）
 let boardState = Array.from({ length: SIZE }, () =>
@@ -46,10 +47,32 @@ function handleClick(e) {
         boardState[fy][fx] = currentPlayer;
     });
 
+    // パスカウントをリセット（手を打てたので）
+    passCount = 0;
+
+    // ターン交代
     currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
-    turnInfo.textContent = `Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+
+    // 次のプレイヤーに合法手があるか？
+    if (hasLegalMove(currentPlayer)) {
+        turnInfo.textContent = `Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+    } else {
+        passCount++;
+        if (passCount >= 2 || isBoardFull()) {
+            // 終局
+            endGame();
+            return;
+        } else {
+            alert(`${currentPlayer} パスします`);
+            // パス → ターン戻す
+            currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
+            turnInfo.textContent = `Turn: ${currentPlayer.charAt(0).toUpperCase() + currentPlayer.slice(1)}`;
+        }
+    }
+
     updateBoard();
 }
+
 
 function updateBoard() {
     const cells = board.children;
@@ -107,6 +130,55 @@ function getFlippableDiscs(x, y, player) {
 
     return toFlip;
 }
+
+function hasLegalMove(player) {
+    for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+            if (boardState[y][x] === null) {
+                const flipped = getFlippableDiscs(x, y, player);
+                if (flipped.length > 0) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+}
+
+function isBoardFull() {
+    for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+            if (boardState[y][x] === null) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function endGame() {
+    // 石の数を数える
+    let blackCount = 0;
+    let whiteCount = 0;
+    for (let y = 0; y < SIZE; y++) {
+        for (let x = 0; x < SIZE; x++) {
+            if (boardState[y][x] === 'black') blackCount++;
+            if (boardState[y][x] === 'white') whiteCount++;
+        }
+    }
+
+    let result = `Game Over!\nBlack: ${blackCount}  White: ${whiteCount}\n`;
+    if (blackCount > whiteCount) {
+        result += 'Black wins!';
+    } else if (whiteCount > blackCount) {
+        result += 'White wins!';
+    } else {
+        result += 'Draw!';
+    }
+
+    alert(result);
+}
+
 
 createBoard();
 placeInitialDiscs();

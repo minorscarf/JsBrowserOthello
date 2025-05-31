@@ -1,0 +1,2 @@
+# JsBrowserOthello
+ブラウザで動くオセロゲーム

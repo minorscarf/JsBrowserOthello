@@ -185,7 +185,25 @@ function endGame() {
     }
 
     alert(result);
+
+    document.getElementById('restart-btn').style.display = 'inline-block';
 }
+
+document.getElementById('restart-btn').addEventListener('click', () => {
+    // 初期化
+    boardState = Array.from({ length: SIZE }, () =>
+        Array.from({ length: SIZE }, () => null)
+    );
+    currentPlayer = 'black';
+    passCount = 0;
+
+    createBoard(); // セルイベント再生成
+    placeInitialDiscs(); // 初期配置
+    turnInfo.textContent = `Turn: Black`;
+
+    // ボタン非表示
+    document.getElementById('restart-btn').style.display = 'none';
+});
 
 
 createBoard();
